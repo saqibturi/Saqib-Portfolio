@@ -98,8 +98,18 @@ export const initialProfile: Profile = {
   },
 };
 export function siteUrl() {
-  return (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(
-    /\/$/,
-    "",
-  );
+  const raw = (process.env.NEXT_PUBLIC_SITE_URL || "").trim();
+  const candidate = raw ||
+    process.env.VERCEL_PROJECT_PRODUCTION_URL ||
+    process.env.VERCEL_URL ||
+    "http://localhost:3000";
+  // Deployment dashboards often supply a hostname without a protocol.
+  const normalized = /^[a-z][a-z\d+.-]*:/i.test(candidate)
+    ? candidate
+    : `https://${candidate}`;
+  const url = new URL(normalized);
+  if (!["http:", "https:"].includes(url.protocol) || url.username || url.password) {
+    throw new Error("NEXT_PUBLIC_SITE_URL must be an HTTP(S) website URL");
+  }
+  return url.origin;
 }
