@@ -3,6 +3,14 @@ import { z } from "zod";
 import { serviceClient } from "@/lib/supabase";
 import { createJsonResponse, embedText, type TwinSource } from "@/lib/ai/openai";
 
+type RecruiterSourceMatch = {
+  title: string;
+  source_type: string;
+  source_url: string | null;
+  content: string;
+  similarity: number | null;
+};
+
 const categorySchema = z.enum([
   "education",
   "career",
@@ -272,12 +280,12 @@ export async function evaluateCandidate(input: { ownerId: string; targetRole: st
   });
   if (error) throw error;
 
-  const sources: TwinSource[] = (matches || []).map((source: any) => ({
+  const sources: TwinSource[] = ((matches || []) as RecruiterSourceMatch[]).map((source) => ({
     title: source.title,
     sourceType: source.source_type,
     sourceUrl: source.source_url,
     content: source.content,
-    similarity: source.similarity,
+    similarity: source.similarity ?? undefined,
   }));
 
   if (!sources.length) {
