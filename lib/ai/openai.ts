@@ -83,6 +83,40 @@ export async function createJsonResponse<T = unknown>(input: {
   return { data: JSON.parse(output) as T, model: String(json.model || model) };
 }
 
+export async function summarizeTwinConversation(input: {
+  previousSummary?: string | null;
+  messages: Array<{ role: "user" | "assistant"; content: string }>;
+}) {
+  const model = process.env.OPENAI_CHAT_MODEL || "gpt-5.6-luna";
+  const transcript = input.messages
+    .map((message) => `${message.role.toUpperCase()}: ${message.content}`)
+    .join("\n");
+
+  const json = await openAI("/responses", {
+    model,
+    store: false,
+    instructions: `Create a compact persistent memory summary for one visitor's conversation with a professional portfolio AI.
+- Keep only context needed to continue this conversation: topics asked about, target role, requested level of detail, unresolved questions, and conclusions already explained.
+- Do not retain passwords, contact details, health information, religion, politics, sexuality, ethnicity, financial data, or unrelated personal details about the visitor.
+- Do not create new facts about Saqib.
+- Keep the summary under 180 words.`,
+    input: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "input_text",
+            text: `PREVIOUS SUMMARY:\n${input.previousSummary || "None"}\n\nRECENT TRANSCRIPT:\n${transcript}`,
+          },
+        ],
+      },
+    ],
+    max_output_tokens: 350,
+  });
+
+  return String(json.output_text || "").trim();
+}
+
 export async function createTwinResponse(input: {
   question: string;
   personalityPrompt: string;
