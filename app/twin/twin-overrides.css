@@ -1,0 +1,104 @@
+/* Contrast fixes for the Digital Twin's light surfaces.
+   The main portfolio uses a dark global palette, while this experience mixes
+   light and dark panels. Keep the light panels self-contained so global text
+   variables never render pale text on white backgrounds. */
+
+.twin-shell {
+  --text: #17253a;
+  --muted: #627087;
+  --border: #d7deea;
+  color: var(--text);
+}
+
+.twin-chat-panel,
+.twin-chat-panel textarea {
+  color: #17253a;
+}
+
+.twin-status {
+  color: #667085;
+}
+
+.twin-message.assistant p {
+  color: #33435b;
+}
+
+.twin-message.user p {
+  color: #ffffff;
+}
+
+.twin-composer textarea {
+  color: #17253a;
+  caret-color: #17253a;
+}
+
+.twin-composer textarea::placeholder {
+  color: #7a8699;
+  opacity: 1;
+}
+
+.twin-thinking {
+  color: #667085;
+}
+
+.twin-grid article {
+  --text: #17253a;
+  --muted: #627087;
+  --border: #d7deea;
+  color: var(--text);
+}
+
+.twin-grid article h3 {
+  color: #17253a;
+}
+
+.twin-grid article p {
+  color: #627087;
+}
+
+.intelligence-tabs {
+  --muted: #667085;
+  --border: #d7deea;
+}
+
+.intelligence-tabs button:not(.active) {
+  color: #536176;
+}
+
+.life-map-panel,
+.recruiter-panel {
+  --text: #17253a;
+  --muted: #667085;
+  --border: #d7deea;
+  color: var(--text);
+}
+
+.life-map-title,
+.life-map-node,
+.timeline-event,
+.intelligence-card,
+.fit-score,
+.dimension-list article,
+.recruiter-columns article,
+.recruiter-placeholder {
+  color: #17253a;
+}
+
+.recruiter-intro {
+  color: #ffffff;
+}
+
+.recruiter-intro h3,
+.recruiter-intro label {
+  color: inherit;
+}
+
+.recruiter-intro input {
+  color: #ffffff;
+  caret-color: #ffffff;
+}
+
+.recruiter-intro input::placeholder {
+  color: #9eabc0;
+  opacity: 1;
+}
