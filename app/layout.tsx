@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { getProfile } from "@/lib/data";
 import { siteUrl } from "@/lib/profile";
 import { Navigation } from "@/components/navigation";
@@ -39,6 +40,7 @@ export default async function RootLayout({
         <main id="main">{children}</main>
         <Footer profile={p} />
         <Motion />
+        <Analytics />
       </body>
     </html>
   );
