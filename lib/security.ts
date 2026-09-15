@@ -2,9 +2,26 @@ import "server-only";
 import { createHmac } from "node:crypto";
 import { siteUrl } from "./profile";
 import { serviceClient } from "./supabase";
+
 export function sameOrigin(request: Request) {
-  return request.headers.get("origin") === new URL(siteUrl()).origin;
+  const origin = request.headers.get("origin");
+  if (!origin) return false;
+
+  try {
+    // Relative browser requests should match the deployment that actually
+    // received the request. This keeps production and Vercel previews working
+    // without weakening the same-origin protection.
+    if (origin === new URL(request.url).origin) return true;
+
+    // Fallback for deployments behind a proxy that rewrites request.url.
+    if (origin === new URL(siteUrl()).origin) return true;
+  } catch {
+    return false;
+  }
+
+  return false;
 }
+
 export async function rateLimit(request: Request, kind: string, limit: number) {
   if (!process.env.RATE_LIMIT_SECRET)
     throw new Error("Rate limiting unavailable");
@@ -21,6 +38,7 @@ export async function rateLimit(request: Request, kind: string, limit: number) {
   if (error) throw new Error("Rate limiting unavailable");
   return data === true;
 }
+
 export async function jsonBody(request: Request, max = 150000) {
   if (Number(request.headers.get("content-length") || 0) > max)
     throw new Error("Request too large");
