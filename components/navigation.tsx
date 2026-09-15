@@ -14,82 +14,25 @@ export function Navigation({ name }: { name: string }) {
     document.body.style.overflow = "hidden";
     nav.current?.querySelector("a")?.focus();
     const key = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setOpen(false);
-        button.current?.focus();
-      }
+      if (e.key === "Escape") { setOpen(false); button.current?.focus(); }
       if (e.key === "Tab") {
-        const items = Array.from(
-          nav.current?.querySelectorAll<HTMLAnchorElement>("a") || [],
-        );
-        const first = items[0],
-          last = items.at(-1);
-        if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault();
-          last?.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
-          first?.focus();
-        }
+        const items = Array.from(nav.current?.querySelectorAll<HTMLAnchorElement>("a") || []);
+        const first = items[0], last = items.at(-1);
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
       }
     };
     document.addEventListener("keydown", key);
-    return () => {
-      document.body.style.overflow = previous;
-      document.removeEventListener("keydown", key);
-    };
+    return () => { document.body.style.overflow = previous; document.removeEventListener("keydown", key); };
   }, [open]);
   return (
-    <header className="site-header">
-      <div className="container nav-inner">
-        <Link href="/" className="wordmark" aria-label={`${name}, home`}>
-          <span className="monogram">
-            SM<span>✦</span>
-          </span>
-          <span className="brand-name">
-            Saqib<span>Muhammad</span>
-          </span>
-        </Link>
-        <button
-          ref={button}
-          className="icon-button mobile-toggle"
-          aria-label={open ? "Close navigation" : "Open navigation"}
-          aria-expanded={open}
-          aria-controls="main-navigation"
-          onClick={() => setOpen(!open)}
-        >
-          {open ? <X /> : <Menu />}
-        </button>
-        <nav
-          ref={nav}
-          id="main-navigation"
-          className={open ? "navigation open" : "navigation"}
-          aria-label="Main navigation"
-        >
-          {[
-            ["/", "Home"],
-            ["/projects", "Projects"],
-            ["/about", "About"],
-            ["/certifications", "Certifications"],
-          ].map(([href, label]) => (
-            <Link
-              key={href}
-              href={href}
-              aria-current={path === href ? "page" : undefined}
-              onClick={() => setOpen(false)}
-            >
-              {label}
-            </Link>
-          ))}
-          <Link
-            className="nav-cta"
-            href="/contact"
-            onClick={() => setOpen(false)}
-          >
-            Let’s talk <ArrowUpRight size={17} />
-          </Link>
-        </nav>
-      </div>
-    </header>
+    <header className="site-header"><div className="container nav-inner">
+      <Link href="/" className="wordmark" aria-label={`${name}, home`}><span className="monogram">SM<span>✦</span></span><span className="brand-name">Saqib<span>Muhammad</span></span></Link>
+      <button ref={button} className="icon-button mobile-toggle" aria-label={open ? "Close navigation" : "Open navigation"} aria-expanded={open} aria-controls="main-navigation" onClick={() => setOpen(!open)}>{open ? <X /> : <Menu />}</button>
+      <nav ref={nav} id="main-navigation" className={open ? "navigation open" : "navigation"} aria-label="Main navigation">
+        {[["/","Home"],["/projects","Projects"],["/twin","Saqib AI"],["/about","About"],["/certifications","Certifications"]].map(([href,label]) => <Link key={href} href={href} aria-current={path === href ? "page" : undefined} onClick={() => setOpen(false)}>{label}</Link>)}
+        <Link className="nav-cta" href="/contact" onClick={() => setOpen(false)}>Let’s talk <ArrowUpRight size={17} /></Link>
+      </nav>
+    </div></header>
   );
 }
