@@ -1,7 +1,7 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import { serviceClient } from "@/lib/supabase";
-import { createTwinResponse, embedText } from "@/lib/ai/openai";
+import { createTwinResponse, embedText, summarizeTwinConversation } from "@/lib/ai/openai";
 import { extractPortfolioSignals } from "@/lib/ai/intelligence";
 
 const MAX_CHUNK_CHARS = 2600;
@@ -153,15 +153,6 @@ export async function answerTwinQuestion(input: { sessionId: string; question: s
   const started = Date.now();
   const supabase = serviceClient();
   const ownerId = await getTwinOwnerId();
-  const queryEmbedding = await embedText(input.question);
-
-  const [{ data: profile }, { data: sourceMatches }, { data: memoryMatches }] = await Promise.all([
-    supabase.from("twin_profiles").select("personality_prompt, is_public").eq("owner_id", ownerId).maybeSingle(),
-    supabase.rpc("match_twin_chunks", { p_owner_id: ownerId, p_query_embedding: queryEmbedding, p_match_count: 8, p_min_similarity: 0.28 }),
-    supabase.rpc("match_twin_memories", { p_owner_id: ownerId, p_query_embedding: queryEmbedding, p_match_count: 4, p_min_similarity: 0.34 }),
-  ]);
-
-  if (profile && profile.is_public === false) throw new Error("Digital Twin is currently offline");
 
   const { data: conversation, error: conversationError } = await supabase
     .from("twin_conversations")
@@ -170,13 +161,23 @@ export async function answerTwinQuestion(input: { sessionId: string; question: s
     .single();
   if (conversationError) throw conversationError;
 
-  const { data: history } = await supabase
-    .from("twin_messages")
-    .select("role, content")
-    .eq("conversation_id", conversation.id)
-    .order("created_at", { ascending: false })
-    .limit(8);
+  const queryEmbedding = await embedText(input.question);
 
+  const [{ data: profile }, { data: sourceMatches }, { data: memoryMatches }, { data: history }] = await Promise.all([
+    supabase.from("twin_profiles").select("personality_prompt, is_public").eq("owner_id", ownerId).maybeSingle(),
+    supabase.rpc("match_twin_chunks", { p_owner_id: ownerId, p_query_embedding: queryEmbedding, p_match_count: 8, p_min_similarity: 0.28 }),
+    supabase.rpc("match_twin_memories", { p_owner_id: ownerId, p_conversation_id: conversation.id, p_query_embedding: queryEmbedding, p_match_count: 4, p_min_similarity: 0.34 }),
+    supabase
+      .from("twin_messages")
+      .select("role, content")
+      .eq("conversation_id", conversation.id)
+      .order("created_at", { ascending: false })
+      .limit(8),
+  ]);
+
+  if (profile && profile.is_public === false) throw new Error("Digital Twin is currently offline");
+
+  const recentMessages = (history || []).reverse() as Array<{ role: "user" | "assistant"; content: string }>;
   const sources = (sourceMatches || []).map((source: any) => ({
     title: source.title,
     sourceType: source.source_type,
@@ -189,7 +190,7 @@ export async function answerTwinQuestion(input: { sessionId: string; question: s
     question: input.question,
     personalityPrompt: profile?.personality_prompt || "Professional, warm, technically precise, and honest about uncertainty.",
     conversationSummary: conversation.memory_summary,
-    recentMessages: (history || []).reverse() as Array<{ role: "user" | "assistant"; content: string }>,
+    recentMessages,
     sources,
     memories: (memoryMatches || []) as Array<{ content: string; memory_type: string; salience: number }>,
   });
@@ -207,9 +208,34 @@ export async function answerTwinQuestion(input: { sessionId: string; question: s
     { conversation_id: conversation.id, role: "assistant", content: response.text, citations: citationRows, model: response.model, latency_ms: Date.now() - started },
   ]);
 
+  const nextMessageCount = (conversation.message_count || 0) + 2;
+  let nextSummary = conversation.memory_summary as string | null;
+  if (nextMessageCount >= 10 && nextMessageCount % 10 === 0) {
+    try {
+      nextSummary = await summarizeTwinConversation({
+        previousSummary: conversation.memory_summary,
+        messages: [
+          ...recentMessages,
+          { role: "user", content: input.question },
+          { role: "assistant", content: response.text },
+        ].slice(-12),
+      });
+    } catch {
+      // Memory compaction must never make an otherwise valid answer fail.
+    }
+  }
+
   await Promise.all([
-    supabase.from("twin_conversations").update({ message_count: (conversation.message_count || 0) + 2, updated_at: new Date().toISOString() }).eq("id", conversation.id),
-    supabase.from("twin_events").insert({ owner_id: ownerId, session_id: input.sessionId, event_type: "chat_completed", payload: { latency_ms: Date.now() - started, source_count: citationRows.length } }),
+    supabase
+      .from("twin_conversations")
+      .update({ message_count: nextMessageCount, memory_summary: nextSummary, updated_at: new Date().toISOString() })
+      .eq("id", conversation.id),
+    supabase.from("twin_events").insert({
+      owner_id: ownerId,
+      session_id: input.sessionId,
+      event_type: "chat_completed",
+      payload: { latency_ms: Date.now() - started, source_count: citationRows.length, memory_compacted: nextSummary !== conversation.memory_summary },
+    }),
   ]);
 
   return { answer: response.text, citations: citationRows, latencyMs: Date.now() - started };
