@@ -5,7 +5,7 @@ import {
   BriefcaseBusiness,
   BrainCircuit,
   GraduationCap,
-  Map,
+  Map as MapIcon,
   Rocket,
   Sparkles,
   Target,
@@ -142,7 +142,7 @@ export function PortfolioIntelligence() {
         </div>
         <div className="intelligence-tabs" role="tablist" aria-label="Portfolio intelligence views">
           <button className={mode === "map" ? "active" : ""} onClick={() => setMode("map")} type="button">
-            <Map size={16} /> Life Map
+            <MapIcon size={16} /> Life Map
           </button>
           <button className={mode === "recruiter" ? "active" : ""} onClick={() => setMode("recruiter")} type="button">
             <Sparkles size={16} /> Recruiter Mode
