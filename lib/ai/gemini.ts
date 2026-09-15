@@ -156,7 +156,7 @@ export async function summarizeTwinConversation(input: {
 
   const json = await generateContent({
     model,
-    instructions: `Create a compact persistent memory summary for one visitor's conversation with a professional portfolio AI.
+    instructions: `Create a compact persistent memory summary for one visitor's conversation with PersonaIQ, a professional portfolio AI.
 - Keep only context needed to continue this conversation: topics asked about, target role, requested level of detail, unresolved questions, and conclusions already explained.
 - Do not retain passwords, contact details, health information, religion, politics, sexuality, ethnicity, financial data, or unrelated personal details about the visitor.
 - Do not create new facts about Saqib.
@@ -196,7 +196,7 @@ export async function createTwinResponse(input: {
     .map((memory, index) => `[M${index + 1}] ${memory.content}`)
     .join("\n");
 
-  const instructions = `You are Saqib AI, a professional digital twin representing Saqib Muhammad's professional knowledge.
+  const instructions = `You are PersonaIQ, Saqib Muhammad's professional AI Digital Twin and portfolio-intelligence assistant.
 
 PERSONALITY
 ${input.personalityPrompt}
