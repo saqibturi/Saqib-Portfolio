@@ -6,7 +6,7 @@ import {
   embedText,
   summarizeTwinConversation,
   type TwinSource,
-} from "@/lib/ai/openai";
+} from "@/lib/ai/gemini";
 import { extractPortfolioSignals } from "@/lib/ai/intelligence";
 
 const MAX_CHUNK_CHARS = 2600;
