@@ -33,14 +33,14 @@ export function Navigation({ name }: { name: string }) {
   return (
     <header className="site-header">
       <div className="container nav-inner">
-        <Link href="/" className="wordmark" aria-label={`${name}, home`}>
+        <Link href="/" className="wordmark" aria-label="Home">
           <Image
             src="/logo.png"
-            alt={name || "Saqib Muhammad"}
-            width={180}
+            alt="Logo"
+            width={40}
             height={40}
             priority
-            className="h-auto w-auto max-h-10 object-contain"
+            className="h-10 w-10 object-contain"
           />
         </Link>
         <button ref={button} className="icon-button mobile-toggle" aria-label={open ? "Close navigation" : "Open navigation"} aria-expanded={open} aria-controls="main-navigation" onClick={() => setOpen(!open)}>{open ? <X /> : <Menu />}</button>
