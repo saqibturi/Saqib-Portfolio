@@ -5,8 +5,8 @@ import "./twin.css";
 import "./twin-overrides.css";
 
 export const metadata: Metadata = {
-  title: "Saqib AI — Digital Twin + Portfolio Intelligence",
-  description: "Explore Saqib Muhammad's source-grounded AI Digital Twin, interactive Life Map, portfolio intelligence, and evidence-based Recruiter Mode.",
+  title: "PersonaIQ — Digital Twin + Portfolio Intelligence",
+  description: "Explore PersonaIQ, Saqib Muhammad's source-grounded AI Digital Twin with an interactive Life Map, portfolio intelligence, and evidence-based Recruiter Mode.",
   alternates: { canonical: "/twin" },
 };
 
@@ -15,7 +15,7 @@ export default function TwinPage() {
     <main className="container page-section twin-page">
       <div className="twin-heading">
         <p className="eyebrow">FLAGSHIP AI PROJECT</p>
-        <h1>Meet <span className="headline-accent">Saqib AI.</span></h1>
+        <h1>Meet <span className="headline-accent">PersonaIQ.</span></h1>
         <p className="lead">
           A professional digital twin and portfolio-intelligence system powered by retrieval-augmented generation, semantic memory, evidence extraction, and explainable recruiter analysis.
         </p>
