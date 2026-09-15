@@ -6,7 +6,20 @@ import { upsertTwinSource } from "@/lib/ai/twin";
 export const runtime = "nodejs";
 
 const schema = z.object({
-  sourceType: z.enum(["profile", "resume", "linkedin", "project", "note", "document", "custom"]),
+  sourceType: z.enum([
+    "profile",
+    "resume",
+    "linkedin",
+    "project",
+    "note",
+    "document",
+    "goal",
+    "calendar",
+    "journal",
+    "certificate",
+    "custom",
+  ]),
+  visibility: z.enum(["private", "twin", "public"]).default("private"),
   title: z.string().trim().min(2).max(180),
   sourceUrl: z.string().url().optional().or(z.literal("")),
   rawContent: z.string().trim().min(40).max(200000),
@@ -18,7 +31,11 @@ export async function POST(request: Request) {
 
   try {
     const body = schema.parse(await request.json());
-    const result = await upsertTwinSource({ ownerId: user.id, ...body, sourceUrl: body.sourceUrl || null });
+    const result = await upsertTwinSource({
+      ownerId: user.id,
+      ...body,
+      sourceUrl: body.sourceUrl || null,
+    });
     return NextResponse.json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to ingest source";
