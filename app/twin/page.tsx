@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DigitalTwinChat } from "@/components/digital-twin-chat";
 import { PortfolioIntelligence } from "@/components/portfolio-intelligence";
 import "./twin.css";
+import "./twin-overrides.css";
 
 export const metadata: Metadata = {
   title: "Saqib AI — Digital Twin + Portfolio Intelligence",
