@@ -1,13 +1,17 @@
 "use client";
+
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Menu, X } from "lucide-react";
+
 export function Navigation({ name }: { name: string }) {
   const path = usePathname();
   const [open, setOpen] = useState(false);
   const button = useRef<HTMLButtonElement>(null);
   const nav = useRef<HTMLElement>(null);
+
   useEffect(() => {
     if (!open) return;
     const previous = document.body.style.overflow;
@@ -25,14 +29,26 @@ export function Navigation({ name }: { name: string }) {
     document.addEventListener("keydown", key);
     return () => { document.body.style.overflow = previous; document.removeEventListener("keydown", key); };
   }, [open]);
+
   return (
-    <header className="site-header"><div className="container nav-inner">
-      <Link href="/" className="wordmark" aria-label={`${name}, home`}><span className="monogram">SM<span>✦</span></span><span className="brand-name">Saqib<span>Muhammad</span></span></Link>
-      <button ref={button} className="icon-button mobile-toggle" aria-label={open ? "Close navigation" : "Open navigation"} aria-expanded={open} aria-controls="main-navigation" onClick={() => setOpen(!open)}>{open ? <X /> : <Menu />}</button>
-      <nav ref={nav} id="main-navigation" className={open ? "navigation open" : "navigation"} aria-label="Main navigation">
-        {[["/","Home"],["/projects","Projects"],["/twin","PersonaIQ"],["/about","About"],["/certifications","Certifications"]].map(([href,label]) => <Link key={href} href={href} aria-current={path === href ? "page" : undefined} onClick={() => setOpen(false)}>{label}</Link>)}
-        <Link className="nav-cta" href="/contact" onClick={() => setOpen(false)}>Let’s talk <ArrowUpRight size={17} /></Link>
-      </nav>
-    </div></header>
+    <header className="site-header">
+      <div className="container nav-inner">
+        <Link href="/" className="wordmark" aria-label={`${name}, home`}>
+          <Image
+            src="/logo.png"
+            alt={name || "Saqib Muhammad"}
+            width={180}
+            height={40}
+            priority
+            className="h-auto w-auto max-h-10 object-contain"
+          />
+        </Link>
+        <button ref={button} className="icon-button mobile-toggle" aria-label={open ? "Close navigation" : "Open navigation"} aria-expanded={open} aria-controls="main-navigation" onClick={() => setOpen(!open)}>{open ? <X /> : <Menu />}</button>
+        <nav ref={nav} id="main-navigation" className={open ? "navigation open" : "navigation"} aria-label="Main navigation">
+          {[["/","Home"],["/projects","Projects"],["/twin","PersonaIQ"],["/about","About"],["/certifications","Certifications"]].map(([href,label]) => <Link key={href} href={href} aria-current={path === href ? "page" : undefined} onClick={() => setOpen(false)}>{label}</Link>)}
+          <Link className="nav-cta" href="/contact" onClick={() => setOpen(false)}>Let’s talk <ArrowUpRight size={17} /></Link>
+        </nav>
+      </div>
+    </header>
   );
 }
