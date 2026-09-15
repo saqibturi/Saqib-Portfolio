@@ -1,11 +1,29 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import { serviceClient } from "@/lib/supabase";
-import { createTwinResponse, embedText, summarizeTwinConversation } from "@/lib/ai/openai";
+import {
+  createTwinResponse,
+  embedText,
+  summarizeTwinConversation,
+  type TwinSource,
+} from "@/lib/ai/openai";
 import { extractPortfolioSignals } from "@/lib/ai/intelligence";
 
 const MAX_CHUNK_CHARS = 2600;
 const CHUNK_OVERLAP = 320;
+
+type ConversationMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
+type RpcSourceMatch = {
+  title: string;
+  source_type: string;
+  source_url: string | null;
+  content: string;
+  similarity: number | null;
+};
 
 export const twinSourceTypes = [
   "profile",
@@ -177,13 +195,13 @@ export async function answerTwinQuestion(input: { sessionId: string; question: s
 
   if (profile && profile.is_public === false) throw new Error("Digital Twin is currently offline");
 
-  const recentMessages = (history || []).reverse() as Array<{ role: "user" | "assistant"; content: string }>;
-  const sources = (sourceMatches || []).map((source: any) => ({
+  const recentMessages = (history || []).reverse() as ConversationMessage[];
+  const sources: TwinSource[] = ((sourceMatches || []) as RpcSourceMatch[]).map((source) => ({
     title: source.title,
     sourceType: source.source_type,
     sourceUrl: source.source_url,
     content: source.content,
-    similarity: source.similarity,
+    similarity: source.similarity ?? undefined,
   }));
 
   const response = await createTwinResponse({
@@ -212,13 +230,14 @@ export async function answerTwinQuestion(input: { sessionId: string; question: s
   let nextSummary = conversation.memory_summary as string | null;
   if (nextMessageCount >= 10 && nextMessageCount % 10 === 0) {
     try {
+      const summaryMessages: ConversationMessage[] = [
+        ...recentMessages,
+        { role: "user", content: input.question },
+        { role: "assistant", content: response.text },
+      ];
       nextSummary = await summarizeTwinConversation({
         previousSummary: conversation.memory_summary,
-        messages: [
-          ...recentMessages,
-          { role: "user", content: input.question },
-          { role: "assistant", content: response.text },
-        ].slice(-12),
+        messages: summaryMessages.slice(-12),
       });
     } catch {
       // Memory compaction must never make an otherwise valid answer fail.
