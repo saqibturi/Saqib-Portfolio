@@ -14,7 +14,11 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(siteUrl()),
     title: { default: p.seoTitle, template: `%s | ${p.name}` },
     description: p.seoDescription,
-    icons: { icon: "/icon.svg" },
+    icons: {
+      icon: [{ url: "/favicon.png", type: "image/png", sizes: "256x256" }],
+      shortcut: "/favicon.png",
+      apple: "/favicon.png",
+    },
     openGraph: {
       type: "website",
       title: p.seoTitle,
