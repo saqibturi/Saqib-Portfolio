@@ -21,7 +21,7 @@ export function DigitalTwinChat() {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "I’m Saqib AI — a source-grounded digital twin of Saqib Muhammad’s professional knowledge. Ask me about his projects, technical strengths, experience, or what he is currently building." },
+    { role: "assistant", content: "I’m PersonaIQ — a source-grounded digital twin of Saqib Muhammad’s professional knowledge. Ask me about his projects, technical strengths, experience, or what he is currently building." },
   ]);
 
   async function send(question = input) {
@@ -40,7 +40,7 @@ export function DigitalTwinChat() {
       if (!response.ok) throw new Error(json.error || "Request failed");
       setMessages((current) => [...current, { role: "assistant", content: json.answer, citations: json.citations }]);
     } catch (error) {
-      setMessages((current) => [...current, { role: "assistant", content: error instanceof Error ? error.message : "The twin is temporarily unavailable." }]);
+      setMessages((current) => [...current, { role: "assistant", content: error instanceof Error ? error.message : "PersonaIQ is temporarily unavailable." }]);
     } finally {
       setBusy(false);
     }
@@ -66,8 +66,8 @@ export function DigitalTwinChat() {
           ))}
         </div>
       </aside>
-      <section className="twin-chat-panel" aria-label="Saqib AI chat">
-        <div className="twin-status"><span /> Retrieval + Memory + Reasoning online</div>
+      <section className="twin-chat-panel" aria-label="PersonaIQ chat">
+        <div className="twin-status"><span /> Retrieval + Memory + Gemini reasoning online</div>
         <div className="twin-messages">
           {messages.map((message, index) => (
             <article className={`twin-message ${message.role}`} key={`${message.role}-${index}`}>
@@ -84,7 +84,7 @@ export function DigitalTwinChat() {
               </div>
             </article>
           ))}
-          {busy && <div className="twin-thinking">Saqib AI is retrieving evidence…</div>}
+          {busy && <div className="twin-thinking">PersonaIQ is retrieving evidence…</div>}
         </div>
         <form className="twin-composer" onSubmit={(event) => { event.preventDefault(); send(); }}>
           <textarea value={input} onChange={(event) => setInput(event.target.value)} placeholder="Ask about projects, AI skills, experience, or engineering decisions…" rows={2} maxLength={2000} />
