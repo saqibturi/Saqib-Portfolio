@@ -10,13 +10,15 @@ NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...
 RATE_LIMIT_SECRET=...
-OPENAI_API_KEY=...
-OPENAI_CHAT_MODEL=gpt-5.6-luna
-OPENAI_ANALYSIS_MODEL=gpt-5.6-terra
-OPENAI_EMBEDDING_MODEL=text-embedding-3-small
+GEMINI_API_KEY=...
+GEMINI_CHAT_MODEL=gemini-3.5-flash-lite
+GEMINI_ANALYSIS_MODEL=gemini-3.5-flash-lite
+GEMINI_EMBEDDING_MODEL=gemini-embedding-2
 ```
 
-`OPENAI_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `RATE_LIMIT_SECRET` are server-only secrets. Never prefix them with `NEXT_PUBLIC_`.
+`GEMINI_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `RATE_LIMIT_SECRET` are server-only secrets. Never prefix them with `NEXT_PUBLIC_`.
+
+The Digital Twin now uses Google Gemini for chat, structured portfolio analysis, and embeddings. `gemini-embedding-2` is requested at 1536 dimensions so it remains compatible with the existing Supabase pgvector schema.
 
 ## 2. Database
 
@@ -29,6 +31,8 @@ For a fresh environment, apply that migration after the portfolio core schema.
 Optional public starter data lives at:
 
 `supabase/seed/ai_digital_twin_seed.sql`
+
+If you ever change embedding providers or embedding dimensionality after indexing real sources, re-index all existing chunks and memories before semantic search is used. Embeddings from different model families must not be mixed in the same similarity index.
 
 ## 3. Owner workflow
 
@@ -57,13 +61,14 @@ Before promoting a deployment:
 - Rate limiting returns HTTP 429 after the configured hourly cap.
 - Recruiter Mode labels scores as evidence-based fit, not objective human ability.
 - Supabase security advisor has no new Digital Twin RLS warnings.
+- Gemini free-tier quota errors are surfaced without exposing the API key.
 
 ## 5. Next deployment phase
 
 The production roadmap after the text-first launch is:
 
 - native PDF/DOCX extraction;
-- OpenAI Realtime voice with ephemeral sessions;
+- Gemini-compatible realtime voice or a dedicated realtime voice provider;
 - hybrid retrieval and reranking;
 - automated RAG evaluation dashboard;
 - observability/cost dashboard;
