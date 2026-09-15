@@ -2,9 +2,27 @@ import "server-only";
 import { createHash } from "node:crypto";
 import { serviceClient } from "@/lib/supabase";
 import { createTwinResponse, embedText } from "@/lib/ai/openai";
+import { extractPortfolioSignals } from "@/lib/ai/intelligence";
 
 const MAX_CHUNK_CHARS = 2600;
 const CHUNK_OVERLAP = 320;
+
+export const twinSourceTypes = [
+  "profile",
+  "resume",
+  "linkedin",
+  "project",
+  "note",
+  "document",
+  "goal",
+  "calendar",
+  "journal",
+  "certificate",
+  "custom",
+] as const;
+
+export type TwinSourceType = (typeof twinSourceTypes)[number];
+export type TwinVisibility = "private" | "twin" | "public";
 
 export function chunkText(text: string) {
   const normalized = text.replace(/\r/g, "").replace(/\n{3,}/g, "\n\n").trim();
@@ -34,17 +52,18 @@ export async function getTwinOwnerId() {
 
 export async function upsertTwinSource(input: {
   ownerId: string;
-  sourceType: "profile" | "resume" | "linkedin" | "project" | "note" | "document" | "custom";
+  sourceType: TwinSourceType;
   title: string;
   sourceUrl?: string | null;
   rawContent: string;
+  visibility: TwinVisibility;
   metadata?: Record<string, unknown>;
 }) {
   const supabase = serviceClient();
   const checksum = createHash("sha256").update(input.rawContent).digest("hex");
   const { data: existing } = await supabase
     .from("twin_sources")
-    .select("id, checksum")
+    .select("id, checksum, visibility")
     .eq("owner_id", input.ownerId)
     .eq("title", input.title)
     .eq("source_type", input.sourceType)
@@ -53,17 +72,44 @@ export async function upsertTwinSource(input: {
   let sourceId: string;
   if (existing?.id) {
     sourceId = existing.id;
-    if (existing.checksum === checksum) return { sourceId, unchanged: true };
+    if (existing.checksum === checksum) {
+      if (existing.visibility !== input.visibility) {
+        await Promise.all([
+          supabase.from("twin_sources").update({ visibility: input.visibility, updated_at: new Date().toISOString() }).eq("id", sourceId),
+          supabase.from("twin_life_events").update({ visibility: input.visibility }).eq("source_id", sourceId),
+          supabase.from("twin_goals").update({ visibility: input.visibility }).eq("source_id", sourceId),
+          supabase.from("twin_skill_evidence").update({ visibility: input.visibility }).eq("source_id", sourceId),
+        ]);
+      }
+      return { sourceId, unchanged: true, visibility: input.visibility };
+    }
+
     const { error } = await supabase
       .from("twin_sources")
-      .update({ raw_content: input.rawContent, source_url: input.sourceUrl, metadata: input.metadata || {}, checksum, updated_at: new Date().toISOString() })
+      .update({
+        raw_content: input.rawContent,
+        source_url: input.sourceUrl,
+        metadata: input.metadata || {},
+        checksum,
+        visibility: input.visibility,
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", sourceId);
     if (error) throw error;
     await supabase.from("twin_chunks").delete().eq("source_id", sourceId);
   } else {
     const { data, error } = await supabase
       .from("twin_sources")
-      .insert({ owner_id: input.ownerId, source_type: input.sourceType, title: input.title, source_url: input.sourceUrl, raw_content: input.rawContent, metadata: input.metadata || {}, checksum })
+      .insert({
+        owner_id: input.ownerId,
+        source_type: input.sourceType,
+        title: input.title,
+        source_url: input.sourceUrl,
+        raw_content: input.rawContent,
+        metadata: input.metadata || {},
+        checksum,
+        visibility: input.visibility,
+      })
       .select("id")
       .single();
     if (error) throw error;
@@ -71,21 +117,36 @@ export async function upsertTwinSource(input: {
   }
 
   const chunks = chunkText(input.rawContent);
-  for (let i = 0; i < chunks.length; i += 1) {
-    const embedding = await embedText(chunks[i]);
+  for (let index = 0; index < chunks.length; index += 1) {
+    const embedding = await embedText(chunks[index]);
     const { error } = await supabase.from("twin_chunks").insert({
       owner_id: input.ownerId,
       source_id: sourceId,
-      chunk_index: i,
-      content: chunks[i],
+      chunk_index: index,
+      content: chunks[index],
       embedding,
-      token_estimate: Math.ceil(chunks[i].length / 4),
+      token_estimate: Math.ceil(chunks[index].length / 4),
       metadata: { title: input.title },
     });
     if (error) throw error;
   }
 
-  return { sourceId, unchanged: false, chunks: chunks.length };
+  const signals = await extractPortfolioSignals({
+    ownerId: input.ownerId,
+    sourceId,
+    sourceType: input.sourceType,
+    title: input.title,
+    rawContent: input.rawContent,
+    visibility: input.visibility,
+  });
+
+  return {
+    sourceId,
+    unchanged: false,
+    chunks: chunks.length,
+    signals,
+    visibility: input.visibility,
+  };
 }
 
 export async function answerTwinQuestion(input: { sessionId: string; question: string }) {
