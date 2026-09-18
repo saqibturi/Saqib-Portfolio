@@ -40,9 +40,9 @@ export function Navigation({ name }: { name: string }) {
             width={172}
             height={54}
             priority
-            sizes="(max-width: 760px) 140px, 172px"
+            sizes="(max-width: 760px) 180px, 280px"
             style={{
-              width: "clamp(140px, 16vw, 172px)",
+              width: "clamp(180px, 24vw, 280px)",
               height: "auto",
               display: "block",
               objectFit: "contain",
