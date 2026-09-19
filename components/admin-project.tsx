@@ -31,16 +31,17 @@ export function ProjectEditor({
   }
   async function save() {
     setBusy(true);
-    setStatus("");
+    setStatus("Saving draft…");
     try {
       await adminAction({ action: "save-project", project: p });
       setDirty(false);
       setSaved(true);
-      setStatus("Draft saved. Your published version is unchanged.");
+      setStatus("Draft saved successfully. Your published version is unchanged.");
       router.refresh();
       return true;
     } catch (e) {
-      setStatus(e instanceof Error ? e.message : "Save failed");
+      const message = e instanceof Error ? e.message : "Save failed";
+      setStatus(`Save failed: ${message}`);
       return false;
     } finally {
       setBusy(false);
@@ -283,7 +284,7 @@ export function ProjectEditor({
         {status}
       </p>
       <div className="editor-actions">
-        <button className="button" disabled={busy} onClick={save}>
+        <button type="button" className="button" disabled={busy} onClick={save}>
           {busy ? "Saving…" : "Save draft"}
         </button>
         {saved && (
@@ -299,9 +300,14 @@ export function ProjectEditor({
           label="Publish"
           message="Publish the latest saved draft? Save your changes first. This updates the live site immediately."
           onConfirm={async () => {
-            if (dirty) throw new Error("Save your draft before publishing.");
+            if (dirty) {
+              setStatus("Saving draft before publishing…");
+              await adminAction({ action: "save-project", project: p });
+              setDirty(false);
+              setSaved(true);
+            }
             await adminAction({ action: "publish", id: p.id });
-            setStatus("Project published.");
+            setStatus("Project published successfully.");
             router.refresh();
           }}
         />
