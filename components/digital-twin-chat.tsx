@@ -98,13 +98,7 @@ export function DigitalTwinChat() {
               <div className="twin-avatar">{message.role === "assistant" ? <Bot size={18} /> : <UserRound size={18} />}</div>
               <div>
                 <p>{message.content}</p>
-                {message.citations && message.citations.length > 0 && (
-                  <div className="twin-citations">
-                    {message.citations.slice(0, 5).map((citation) => citation.url ? (
-                      <a key={citation.marker} href={citation.url} target="_blank" rel="noreferrer">[{citation.marker}] {citation.title}</a>
-                    ) : <span key={citation.marker}>[{citation.marker}] {citation.title}</span>)}
-                  </div>
-                )}
+
               </div>
             </article>
           ))}
