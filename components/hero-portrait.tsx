@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useRef } from "react";
-import { BrainCircuit, Code2, ArrowUpRight } from "lucide-react";
+import { BrainCircuit, Code2 } from "lucide-react";
 export function HeroPortrait({ photo, name }: { photo: string; name: string }) {
   const ref = useRef<HTMLDivElement>(null);
   return (
@@ -29,10 +29,6 @@ export function HeroPortrait({ photo, name }: { photo: string; name: string }) {
         ref.current?.style.setProperty("--ry", "0deg");
       }}
     >
-      <div className="portrait-topline">
-        <span>THE PERSON BEHIND THE CODE</span>
-        <span>SM / 01</span>
-      </div>
       <div className="portrait-outline" aria-hidden="true" />
       <div className="portrait-frame">
         <Image
@@ -43,14 +39,6 @@ export function HeroPortrait({ photo, name }: { photo: string; name: string }) {
           priority
           sizes="(max-width: 760px) 90vw, 40vw"
         />
-        <div className="portrait-caption">
-          <span>{name}</span>
-          <ArrowUpRight size={22} />
-        </div>
-      </div>
-      <div className="portrait-bottomline">
-        <span>THINK. BUILD. REFINE.</span>
-        <span>↗</span>
       </div>
       <div className="floating-skill skill-ai">
         <span className="skill-icon">
@@ -58,7 +46,6 @@ export function HeroPortrait({ photo, name }: { photo: string; name: string }) {
         </span>
         <div>
           <strong>AI & Machine Learning</strong>
-          <span>Curiosity. Code. Possibility.</span>
         </div>
       </div>
       <div className="floating-skill skill-web">
@@ -67,7 +54,6 @@ export function HeroPortrait({ photo, name }: { photo: string; name: string }) {
         </span>
         <div>
           <strong>Web & Shopify</strong>
-          <span>Built around your business.</span>
         </div>
       </div>
     </div>
