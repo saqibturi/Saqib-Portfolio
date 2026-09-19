@@ -14,10 +14,20 @@ export function Footer({ profile: p }: { profile: Profile }) {
   return (
     <footer className="container footer">
       <div className="footer-top">
-        <Link href="/" className="wordmark">
-          <span className="monogram">
-            SM<span>✦</span>
-          </span>
+        <Link href="/" className="wordmark" aria-label={`${p.name} home`}>
+          <Image
+            src="/logo.png"
+            alt={`${p.name} logo`}
+            width={172}
+            height={54}
+            sizes="(max-width: 760px) 180px, 280px"
+            style={{
+              width: "clamp(180px, 24vw, 280px)",
+              height: "auto",
+              display: "block",
+              objectFit: "contain",
+            }}
+          />
         </Link>
         <p>Building with purpose. Learning with curiosity.</p>
         <a href="#top" className="back-top">
