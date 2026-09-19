@@ -4,8 +4,6 @@ import { HeroPortrait } from "@/components/hero-portrait";
 import Link from "next/link";
 import {
   ArrowUpRight,
-  ArrowDown,
-  MapPin,
   Download,
   ArrowRight,
 } from "lucide-react";
@@ -30,11 +28,6 @@ export default async function Home() {
       <div className="hero-stage">
         <section className="container hero">
           <div className="hero-copy">
-            <div className="hero-availability">
-              <span className="status-dot" />
-              {p.availability}
-            </div>
-            <p className="eyebrow hero-intro">{p.title.toUpperCase()}</p>
             <h1>
               {p.heroHeadline}
               <br />
@@ -57,17 +50,8 @@ export default async function Home() {
                 Download résumé <Download size={16} />
               </a>
             )}
-            <div className="hero-note">
-              <MapPin size={15} />
-              {p.location}
-              <span className="note-rule" />
-              Built with curiosity.
-            </div>
           </div>
           <HeroPortrait photo={p.photo} name={p.name} />
-          <a href="#expertise" className="scroll-cue">
-            <ArrowDown size={16} /> SCROLL TO EXPLORE
-          </a>
         </section>
       </div>
       <section
