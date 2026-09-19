@@ -8,6 +8,7 @@ import {
   type TwinSource,
 } from "@/lib/ai/gemini";
 import { extractPortfolioSignals } from "@/lib/ai/intelligence";
+import { getProfile, getProjects, getCertificates } from "@/lib/data";
 
 const MAX_CHUNK_CHARS = 2600;
 const CHUNK_OVERLAP = 320;
@@ -181,7 +182,15 @@ export async function answerTwinQuestion(input: { sessionId: string; question: s
 
   const queryEmbedding = await embedText(input.question);
 
-  const [{ data: profile }, { data: sourceMatches }, { data: memoryMatches }, { data: history }] = await Promise.all([
+  const [
+    { data: profile },
+    { data: sourceMatches },
+    { data: memoryMatches },
+    { data: history },
+    portfolioProfile,
+    publishedProjects,
+    publishedCertificates,
+  ] = await Promise.all([
     supabase.from("twin_profiles").select("personality_prompt, is_public").eq("owner_id", ownerId).maybeSingle(),
     supabase.rpc("match_twin_chunks", { p_owner_id: ownerId, p_query_embedding: queryEmbedding, p_match_count: 8, p_min_similarity: 0.28 }),
     supabase.rpc("match_twin_memories", { p_owner_id: ownerId, p_conversation_id: conversation.id, p_query_embedding: queryEmbedding, p_match_count: 4, p_min_similarity: 0.34 }),
@@ -191,18 +200,81 @@ export async function answerTwinQuestion(input: { sessionId: string; question: s
       .eq("conversation_id", conversation.id)
       .order("created_at", { ascending: false })
       .limit(8),
+    getProfile(),
+    getProjects(),
+    getCertificates(),
   ]);
 
   if (profile && profile.is_public === false) throw new Error("Digital Twin is currently offline");
 
   const recentMessages = (history || []).reverse() as ConversationMessage[];
-  const sources: TwinSource[] = ((sourceMatches || []) as RpcSourceMatch[]).map((source) => ({
+
+  const profileContent = [
+    `Name: ${portfolioProfile.name}`,
+    `Professional title: ${portfolioProfile.title}`,
+    `Introduction: ${portfolioProfile.intro}`,
+    `About: ${portfolioProfile.about}`,
+    `Location: ${portfolioProfile.location}`,
+    `Availability: ${portfolioProfile.availability}`,
+    `Expertise: ${portfolioProfile.expertise
+      .map((item) => `${item.title} — ${item.description} [${item.tags.join(", ")}]`)
+      .join(" | ")}`,
+    `Experience: ${portfolioProfile.experience
+      .map((item) => `${item.title}, ${item.organization}, ${item.period} — ${item.description}`)
+      .join(" | ")}`,
+    `Education: ${portfolioProfile.education
+      .map((item) => `${item.title}, ${item.organization}, ${item.period} — ${item.description}`)
+      .join(" | ")}`,
+  ].join("\n");
+
+  const projectContent = publishedProjects.length
+    ? publishedProjects
+        .map(
+          (project) =>
+            `${project.title} — ${project.summary || "No summary provided"}; category: ${project.category}; technologies: ${project.tags.join(", ")}`,
+        )
+        .join("\n")
+    : "No published projects are currently listed.";
+
+  const certificateContent = publishedCertificates.length
+    ? publishedCertificates
+        .map(
+          (certificate) =>
+            `${certificate.title} — ${certificate.issuer}${certificate.issued ? `, issued ${certificate.issued}` : ""}; skills: ${certificate.skills.join(", ")}`,
+        )
+        .join("\n")
+    : "No published certificates are currently listed.";
+
+  const canonicalSources: TwinSource[] = [
+    {
+      title: "Current portfolio profile",
+      sourceType: "profile",
+      content: profileContent,
+      similarity: 1,
+    },
+    {
+      title: "Published portfolio projects",
+      sourceType: "project",
+      content: projectContent,
+      similarity: 1,
+    },
+    {
+      title: "Published certifications",
+      sourceType: "certificate",
+      content: certificateContent,
+      similarity: 1,
+    },
+  ];
+
+  const retrievedSources: TwinSource[] = ((sourceMatches || []) as RpcSourceMatch[]).map((source) => ({
     title: source.title,
     sourceType: source.source_type,
     sourceUrl: source.source_url,
     content: source.content,
     similarity: source.similarity ?? undefined,
   }));
+
+  const sources: TwinSource[] = [...canonicalSources, ...retrievedSources];
 
   const response = await createTwinResponse({
     question: input.question,
