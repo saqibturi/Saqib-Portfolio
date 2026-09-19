@@ -21,7 +21,11 @@ export function DigitalTwinChat() {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "I’m PersonaIQ — a source-grounded digital twin of Saqib Muhammad’s professional knowledge. Ask me about his projects, technical strengths, experience, or what he is currently building." },
+    {
+      role: "assistant",
+      content:
+        "Hi — I’m PersonaIQ, Saqib Muhammad’s AI Digital Twin. I answer from his current portfolio, projects, experience, education, and indexed professional knowledge. Ask me anything about his work or suitability for a role.",
+    },
   ]);
 
   async function send(question = input) {
@@ -47,19 +51,30 @@ export function DigitalTwinChat() {
   }
 
   const suggestions = [
-    "What are Saqib’s strongest AI skills?",
-    "Which project best shows his engineering ability?",
-    "Explain Saqib’s experience to a recruiter.",
-    "What should an AI student learn from his projects?",
+    "Who is Saqib Muhammad?",
+    "What are Saqib’s strongest skills?",
+    "Show me Saqib’s best AI project.",
+    "What professional experience does Saqib have?",
+    "Why should I interview Saqib?",
+    "Is Saqib suitable for a Junior AI Engineer role?",
   ];
 
   return (
     <div className="twin-shell">
       <aside className="twin-sidebar">
         <div className="twin-orb"><Sparkles size={28} /></div>
-        <p className="eyebrow">AI DIGITAL TWIN</p>
-        <h2>Talk to my professional knowledge.</h2>
-        <p>This agent retrieves evidence from my portfolio knowledge base before it answers. It is designed to be transparent, source-aware, and recruiter friendly.</p>
+        <p className="eyebrow">SAQIB MUHAMMAD · AI DIGITAL TWIN</p>
+        <h2>Meet PersonaIQ.</h2>
+        <p>
+          Ask about Saqib’s skills, projects, education, experience, or fit for a role.
+          PersonaIQ grounds answers in his current portfolio knowledge before responding.
+        </p>
+        <div className="twin-trust">
+          <span>Profile grounded</span>
+          <span>Source aware</span>
+          <span>Recruiter friendly</span>
+        </div>
+        <p className="twin-try-label">Try asking</p>
         <div className="twin-suggestions">
           {suggestions.map((suggestion) => (
             <button key={suggestion} type="button" onClick={() => send(suggestion)} disabled={busy}>{suggestion}</button>
@@ -67,7 +82,16 @@ export function DigitalTwinChat() {
         </div>
       </aside>
       <section className="twin-chat-panel" aria-label="PersonaIQ chat">
-        <div className="twin-status"><span /> Retrieval + Memory + Gemini reasoning online</div>
+        <div className="twin-chat-header">
+          <div className="twin-chat-identity">
+            <div className="twin-mini-orb"><Sparkles size={17} /></div>
+            <div>
+              <strong>PersonaIQ</strong>
+              <span>Saqib Muhammad’s AI Digital Twin</span>
+            </div>
+          </div>
+          <div className="twin-status"><span /> Portfolio intelligence online</div>
+        </div>
         <div className="twin-messages">
           {messages.map((message, index) => (
             <article className={`twin-message ${message.role}`} key={`${message.role}-${index}`}>
@@ -87,7 +111,13 @@ export function DigitalTwinChat() {
           {busy && <div className="twin-thinking">PersonaIQ is retrieving evidence…</div>}
         </div>
         <form className="twin-composer" onSubmit={(event) => { event.preventDefault(); send(); }}>
-          <textarea value={input} onChange={(event) => setInput(event.target.value)} placeholder="Ask about projects, AI skills, experience, or engineering decisions…" rows={2} maxLength={2000} />
+          <textarea
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+            placeholder="Ask about Saqib’s skills, projects, education, experience, or role fit…"
+            rows={2}
+            maxLength={2000}
+          />
           <button type="submit" aria-label="Send message" disabled={busy || !input.trim()}><Send size={19} /></button>
         </form>
       </section>
