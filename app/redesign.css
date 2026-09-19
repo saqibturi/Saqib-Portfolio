@@ -114,12 +114,13 @@ p {
 .hero {
   grid-template-columns: 1.3fr 1fr;
   gap: 7%;
-  padding-block: 68px 78px;
-  min-height: 720px;
-  align-items: center;
+  padding-block: 42px 64px;
+  min-height: 640px;
+  align-items: start;
 }
 .hero-copy {
   min-width: 0;
+  padding-top: 34px;
 }
 .hero-availability {
   display: inline-flex;
@@ -261,7 +262,7 @@ p {
 }
 .portrait-outline {
   position: absolute;
-  inset: 57px -16px 42px 33px;
+  inset: 28px -16px 24px 33px;
   border: 1px solid #adbcd8;
   border-radius: 150px 150px 8px 8px;
   z-index: -1;
@@ -301,12 +302,12 @@ p {
   color: var(--accent);
 }
 .skill-ai {
-  left: -28px;
-  bottom: 175px;
+  left: -24px;
+  bottom: 145px;
 }
 .skill-web {
-  right: -17px;
-  bottom: 72px;
+  right: -14px;
+  bottom: 54px;
   animation-delay: 0.4s;
 }
 .skill-web .skill-icon {
@@ -744,7 +745,7 @@ p {
 }
 @media (min-width: 1500px) {
   .hero {
-    min-height: 760px;
+    min-height: 680px;
   }
   .hero h1 {
     font-size: 4.6rem;
@@ -756,7 +757,7 @@ p {
   }
   .hero {
     gap: 5%;
-    min-height: 660px;
+    min-height: 600px;
   }
   .hero h1 {
     font-size: 3.4rem;
@@ -834,8 +835,11 @@ p {
   }
   .hero {
     grid-template-columns: 1fr;
-    padding-block: 36px 64px;
-    gap: 38px;
+    padding-block: 30px 56px;
+    gap: 34px;
+  }
+  .hero-copy {
+    padding-top: 0;
   }
   .hero h1 {
     font-size: clamp(2.6rem, 8.5vw, 4.1rem);
