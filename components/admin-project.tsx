@@ -29,11 +29,31 @@ export function ProjectEditor({
     setP((p) => ({ ...p, [key]: value }));
     setDirty(true);
   }
+
+  function normalizeHttpsUrl(value: string) {
+    const v = value.trim();
+    if (!v) return "";
+    if (v.startsWith("https://")) return v;
+    if (v.startsWith("http://")) return "https://" + v.slice(7);
+    if (v.startsWith("/")) return window.location.origin + v;
+    return "https://" + v;
+  }
+
+  function normalizedProject(project: Project): Project {
+    return {
+      ...project,
+      github: normalizeHttpsUrl(project.github),
+      demo: normalizeHttpsUrl(project.demo),
+    };
+  }
+
   async function save() {
     setBusy(true);
     setStatus("Saving draft…");
     try {
-      await adminAction({ action: "save-project", project: p });
+      const next = normalizedProject(p);
+      await adminAction({ action: "save-project", project: next });
+      setP(next);
       setDirty(false);
       setSaved(true);
       setStatus("Draft saved successfully. Your published version is unchanged.");
@@ -302,7 +322,9 @@ export function ProjectEditor({
           onConfirm={async () => {
             if (dirty) {
               setStatus("Saving draft before publishing…");
-              await adminAction({ action: "save-project", project: p });
+              const next = normalizedProject(p);
+              await adminAction({ action: "save-project", project: next });
+              setP(next);
               setDirty(false);
               setSaved(true);
             }
