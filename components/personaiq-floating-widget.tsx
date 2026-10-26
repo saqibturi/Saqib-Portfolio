@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import "./personaiq-floating-widget.css";
 import { Bot, ChevronDown, MessageCircle, Minimize2, Send, Sparkles, UserRound, X } from "lucide-react";
 
 type ChatMessage = { role: "user" | "assistant"; content: string; citations?: { marker: string; title: string; type: string; url?: string | null }[] };
