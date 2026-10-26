@@ -180,20 +180,19 @@ export async function answerTwinQuestion(input: { sessionId: string; question: s
     .single();
   if (conversationError) throw conversationError;
 
-  const queryEmbedding = await embedText(input.question);
-
+  // Start embedding and independent data reads together so embedding latency
+  // does not block portfolio/history/profile retrieval.
+  const embeddingPromise = embedText(input.question);
   const [
+    queryEmbedding,
     { data: profile },
-    { data: sourceMatches },
-    { data: memoryMatches },
     { data: history },
     portfolioProfile,
     publishedProjects,
     publishedCertificates,
   ] = await Promise.all([
+    embeddingPromise,
     supabase.from("twin_profiles").select("personality_prompt, is_public").eq("owner_id", ownerId).maybeSingle(),
-    supabase.rpc("match_twin_chunks", { p_owner_id: ownerId, p_query_embedding: queryEmbedding, p_match_count: 5, p_min_similarity: 0.30 }),
-    supabase.rpc("match_twin_memories", { p_owner_id: ownerId, p_conversation_id: conversation.id, p_query_embedding: queryEmbedding, p_match_count: 2, p_min_similarity: 0.36 }),
     supabase
       .from("twin_messages")
       .select("role, content")
@@ -203,6 +202,12 @@ export async function answerTwinQuestion(input: { sessionId: string; question: s
     getProfile(),
     getProjects(),
     getCertificates(),
+  ]);
+
+  // Vector searches require the embedding, but can run together.
+  const [{ data: sourceMatches }, { data: memoryMatches }] = await Promise.all([
+    supabase.rpc("match_twin_chunks", { p_owner_id: ownerId, p_query_embedding: queryEmbedding, p_match_count: 5, p_min_similarity: 0.30 }),
+    supabase.rpc("match_twin_memories", { p_owner_id: ownerId, p_conversation_id: conversation.id, p_query_embedding: queryEmbedding, p_match_count: 2, p_min_similarity: 0.36 }),
   ]);
 
   if (profile && profile.is_public === false) throw new Error("Digital Twin is currently offline");
