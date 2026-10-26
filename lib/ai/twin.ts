@@ -170,18 +170,25 @@ export async function upsertTwinSource(input: {
 
 export async function answerTwinQuestion(input: { sessionId: string; question: string }) {
   const started = Date.now();
+  const stageTimings: Record<string, number> = {};
   const supabase = serviceClient();
-  const ownerId = await getTwinOwnerId();
 
+  let stageStarted = Date.now();
+  const ownerId = await getTwinOwnerId();
+  stageTimings.ownerLookupMs = Date.now() - stageStarted;
+
+  stageStarted = Date.now();
   const { data: conversation, error: conversationError } = await supabase
     .from("twin_conversations")
     .upsert({ owner_id: ownerId, session_id: input.sessionId, updated_at: new Date().toISOString() }, { onConflict: "owner_id,session_id" })
     .select("id, memory_summary, message_count")
     .single();
   if (conversationError) throw conversationError;
+  stageTimings.conversationLookupMs = Date.now() - stageStarted;
 
   // Start embedding and independent data reads together so embedding latency
   // does not block portfolio/history/profile retrieval.
+  stageStarted = Date.now();
   const embeddingPromise = embedText(input.question);
   const [
     queryEmbedding,
@@ -203,12 +210,15 @@ export async function answerTwinQuestion(input: { sessionId: string; question: s
     getProjects(),
     getCertificates(),
   ]);
+  stageTimings.embeddingAndIndependentReadsMs = Date.now() - stageStarted;
 
   // Vector searches require the embedding, but can run together.
+  stageStarted = Date.now();
   const [{ data: sourceMatches }, { data: memoryMatches }] = await Promise.all([
     supabase.rpc("match_twin_chunks", { p_owner_id: ownerId, p_query_embedding: queryEmbedding, p_match_count: 5, p_min_similarity: 0.30 }),
     supabase.rpc("match_twin_memories", { p_owner_id: ownerId, p_conversation_id: conversation.id, p_query_embedding: queryEmbedding, p_match_count: 2, p_min_similarity: 0.36 }),
   ]);
+  stageTimings.vectorSearchMs = Date.now() - stageStarted;
 
   if (profile && profile.is_public === false) throw new Error("Digital Twin is currently offline");
 
@@ -281,6 +291,7 @@ export async function answerTwinQuestion(input: { sessionId: string; question: s
 
   const sources: TwinSource[] = [...canonicalSources, ...retrievedSources];
 
+  stageStarted = Date.now();
   const response = await createTwinResponse({
     question: input.question,
     personalityPrompt: profile?.personality_prompt || "Professional, warm, technically precise, and honest about uncertainty.",
@@ -289,6 +300,7 @@ export async function answerTwinQuestion(input: { sessionId: string; question: s
     sources,
     memories: (memoryMatches || []) as Array<{ content: string; memory_type: string; salience: number }>,
   });
+  stageTimings.geminiResponseMs = Date.now() - stageStarted;
 
   const citationRows = sources.map((source, index) => ({
     marker: `S${index + 1}`,
@@ -321,6 +333,7 @@ export async function answerTwinQuestion(input: { sessionId: string; question: s
     }
   }
 
+  stageStarted = Date.now();
   await Promise.all([
     supabase
       .from("twin_conversations")
@@ -333,6 +346,15 @@ export async function answerTwinQuestion(input: { sessionId: string; question: s
       payload: { latency_ms: Date.now() - started, source_count: citationRows.length, memory_compacted: nextSummary !== conversation.memory_summary },
     }),
   ]);
+  stageTimings.persistenceMs = Date.now() - stageStarted;
 
-  return { answer: response.text, citations: citationRows, latencyMs: Date.now() - started };
+  const latencyMs = Date.now() - started;
+  console.info("[PersonaIQ] response timing", {
+    ...stageTimings,
+    latencyMs,
+    sourceCount: citationRows.length,
+    memoryCompacted: nextSummary !== conversation.memory_summary,
+  });
+
+  return { answer: response.text, citations: citationRows, latencyMs };
 }
