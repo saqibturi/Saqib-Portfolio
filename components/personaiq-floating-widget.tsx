@@ -89,9 +89,23 @@ export function PersonaIQFloatingWidget() {
           <footer className="personaiq-footnote">Powered by Saqib’s portfolio intelligence <a href="/twin">Explore PersonaIQ <span>↗</span></a></footer>
         </section>
       )}
-      <button className={`personaiq-launcher${open ? " is-open" : ""}`} type="button" onClick={() => setOpen((value) => !value)} aria-label={open ? "Close PersonaIQ chat" : "Chat with PersonaIQ"} aria-expanded={open}>
-        {open ? <X size={22} /> : <><span className="personaiq-launcher-spark"><Sparkles size={16} /></span><MessageCircle size={22} /><span className="personaiq-launcher-label">Ask PersonaIQ</span><ChevronDown className="personaiq-launcher-chevron" size={15} /></>}
-      </button>
+      <div className="personaiq-quick-actions">
+        <a
+          className="personaiq-whatsapp"
+          href="https://wa.me/923308925715?text=Hi%20Saqib%2C%20I%20visited%20your%20portfolio%20and%20would%20like%20to%20connect."
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Contact Saqib on WhatsApp"
+          title="Chat on WhatsApp"
+        >
+          <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M16.04 3.2A12.7 12.7 0 0 0 5.1 22.35L3.4 28.6l6.4-1.68A12.7 12.7 0 1 0 16.04 3.2Zm0 23.1c-2 0-3.96-.54-5.66-1.56l-.4-.24-3.8 1 1.02-3.7-.26-.42a10.2 10.2 0 1 1 9.1 4.92Zm5.6-7.63c-.3-.15-1.8-.9-2.08-1-.28-.1-.48-.15-.68.15-.2.3-.78 1-.96 1.2-.18.2-.35.22-.65.07-.3-.15-1.27-.47-2.42-1.5-.9-.8-1.5-1.8-1.68-2.1-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.38-.02-.53-.08-.15-.68-1.64-.93-2.25-.24-.59-.49-.51-.68-.52h-.58c-.2 0-.53.08-.8.38-.28.3-1.06 1.04-1.06 2.54s1.09 2.95 1.24 3.15c.15.2 2.14 3.27 5.18 4.58.72.31 1.28.5 1.72.63.72.23 1.38.2 1.9.12.58-.09 1.8-.74 2.05-1.45.25-.72.25-1.33.17-1.45-.07-.13-.27-.2-.57-.35Z"/>
+          </svg>
+        </a>
+        <button className={open ? "personaiq-launcher is-open" : "personaiq-launcher"} type="button" onClick={() => setOpen((value) => !value)} aria-label={open ? "Close PersonaIQ chat" : "Chat with PersonaIQ"} aria-expanded={open} title={open ? "Close PersonaIQ" : "Chat with PersonaIQ"}>
+          {open ? <X size={21} /> : <Bot size={25} strokeWidth={1.9} />}
+        </button>
+      </div>
     </div>
   );
 }
