@@ -5,6 +5,7 @@ import { siteUrl } from "@/lib/profile";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/public";
 import { Motion } from "@/components/motion";
+import { PersonaIQFloatingWidget } from "@/components/personaiq-floating-widget";
 import "./globals.css";
 import "./redesign.css";
 export const dynamic = "force-dynamic";
@@ -44,6 +45,7 @@ export default async function RootLayout({
         <main id="main">{children}</main>
         <Footer profile={p} />
         <Motion />
+        <PersonaIQFloatingWidget />
         <Analytics />
       </body>
     </html>
