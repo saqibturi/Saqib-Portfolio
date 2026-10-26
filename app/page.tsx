@@ -91,15 +91,29 @@ export default async function Home() {
       </section>
       <div className="skills-strip">
         <p className="stack-caption">THE TOOLS BEHIND THE IDEAS</p>
-        <div className="container">
-          <span>PYTHON</span>
-          <i /> <span>MACHINE LEARNING</span>
-          <i />
-          <span>WEB DEVELOPMENT</span>
-          <i />
-          <span>SHOPIFY</span>
-          <i />
-          <span>C++</span>
+        <div className="skills-marquee" aria-label="Technologies and tools">
+          <div className="skills-track">
+            {[0, 1].map((copy) => (
+              <div className="skills-group" key={copy} aria-hidden={copy === 1 ? "true" : undefined}>
+                {[
+                  { name: "Python", logo: "python/python-original.svg" },
+                  { name: "Machine Learning", logo: "tensorflow/tensorflow-original.svg" },
+                  { name: "React", logo: "react/react-original.svg" },
+                  { name: "JavaScript", logo: "javascript/javascript-original.svg" },
+                  { name: "HTML5", logo: "html5/html5-original.svg" },
+                  { name: "CSS3", logo: "css3/css3-original.svg" },
+                  { name: "Web Development", logo: "vscode/vscode-original.svg" },
+                  { name: "Shopify", logo: "shopify/shopify-original.svg" },
+                  { name: "C++", logo: "cplusplus/cplusplus-original.svg" },
+                ].map((skill) => (
+                  <span className="skill-item" key={skill.name}>
+                    <img src={`https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/${skill.logo}`} alt="" loading="lazy" />
+                    <span>{skill.name}</span>
+                  </span>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
       {p.sections.map((section) =>
