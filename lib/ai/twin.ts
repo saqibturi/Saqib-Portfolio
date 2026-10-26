@@ -192,14 +192,14 @@ export async function answerTwinQuestion(input: { sessionId: string; question: s
     publishedCertificates,
   ] = await Promise.all([
     supabase.from("twin_profiles").select("personality_prompt, is_public").eq("owner_id", ownerId).maybeSingle(),
-    supabase.rpc("match_twin_chunks", { p_owner_id: ownerId, p_query_embedding: queryEmbedding, p_match_count: 8, p_min_similarity: 0.28 }),
-    supabase.rpc("match_twin_memories", { p_owner_id: ownerId, p_conversation_id: conversation.id, p_query_embedding: queryEmbedding, p_match_count: 4, p_min_similarity: 0.34 }),
+    supabase.rpc("match_twin_chunks", { p_owner_id: ownerId, p_query_embedding: queryEmbedding, p_match_count: 5, p_min_similarity: 0.30 }),
+    supabase.rpc("match_twin_memories", { p_owner_id: ownerId, p_conversation_id: conversation.id, p_query_embedding: queryEmbedding, p_match_count: 2, p_min_similarity: 0.36 }),
     supabase
       .from("twin_messages")
       .select("role, content")
       .eq("conversation_id", conversation.id)
       .order("created_at", { ascending: false })
-      .limit(8),
+      .limit(6),
     getProfile(),
     getProjects(),
     getCertificates(),
@@ -300,7 +300,7 @@ export async function answerTwinQuestion(input: { sessionId: string; question: s
 
   const nextMessageCount = (conversation.message_count || 0) + 2;
   let nextSummary = conversation.memory_summary as string | null;
-  if (nextMessageCount >= 10 && nextMessageCount % 10 === 0) {
+  if (nextMessageCount >= 20 && nextMessageCount % 20 === 0) {
     try {
       const summaryMessages: ConversationMessage[] = [
         ...recentMessages,
