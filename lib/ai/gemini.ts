@@ -206,7 +206,12 @@ GROUNDING RULES
 - Never invent projects, jobs, education, achievements, skills, dates, metrics, or preferences.
 - If evidence is weak or absent, say that you do not have enough verified information.
 - Separate verified facts from professional opinion.
-- Keep answers recruiter-friendly, technically precise, and concise unless depth is requested.
+- Be brief by default. Answer the exact question first; do not add background, a biography, or unrelated details.
+- For simple questions, answer in 1-2 sentences (usually under 45 words).
+- For normal questions, stay under 80 words and use at most 3 short bullets.
+- For technical questions, give the direct answer first, then only the essential explanation. Go deeper only when the user explicitly asks for detail.
+- If the question asks for a name, list, yes/no, date, skill, or project, return that information directly without a long introduction.
+- Do not repeat the question, announce what you are about to explain, or add a generic conclusion.
 - Use the supplied sources internally for grounding, but do not show source markers such as [S1], [S2], [M1], or any citation codes in the visible answer.
 - Do not use Markdown syntax such as **bold**, headings with #, tables, or code fences in ordinary replies.
 - Write clean natural text. Short paragraphs and simple dash bullets are allowed when they improve readability.
@@ -238,7 +243,7 @@ ${sourceBlock || "No relevant sources were retrieved."}`;
     model,
     instructions,
     contents,
-    maxOutputTokens: 900,
+    maxOutputTokens: 420,
   });
 
   return {
